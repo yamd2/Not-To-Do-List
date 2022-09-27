@@ -1,9 +1,9 @@
-let taskList = []; //all the list in entry
-let badList = []; // only list when you mark as bad list
+let taskList = [];
 const hrPerWek = 24 * 7;
 
 const handleOnSubmit = (e) => {
   const frmData = new FormData(e);
+
   const task = frmData.get("task");
   const hr = +frmData.get("hr");
 
@@ -13,40 +13,41 @@ const handleOnSubmit = (e) => {
     type: "entry",
   };
 
-  const totalTaskHrs = taskList.reduce((acc, item) => {
-    return acc + item.hr;
-  }, 0);
-  const total = totalTaskHrs + hr + totalBadHours();
+  const total = taskList.reduce((acc, item) => acc + item.hr, 0) + hr;
+
   if (total > hrPerWek) {
-    return alert("No more hours left to add new task");
+    return alert(
+      "Sorry boss, you don't have enought hour left to add this task."
+    );
   }
 
   taskList.push(obj);
-  console.log(taskList);
   display();
-  totalTaskHours();
 };
 
 const display = () => {
   let str = "";
 
   taskList.map((item, i) => {
-    str += ` 
-    <tr>
-    <th scope="row">${i + 1}</th>
-    <td>${item.task}</td>
-    <td>${item.hr}hr</td>
-    <td>
-      <button onclick="deleteItem(${i})"class="btn btn-danger">
-        <i class="fa-solid fa-trash"></i>
-      </button>
-      <button onclick="markAsNotToDo(${i})"class="btn btn-success">
-        <i class="fa-solid fa-arrow-right"></i>
-      </button>
-    </td>
-  </tr>
-    `;
+    str +=
+      item.type === "entry"
+        ? `
+        <tr>
+        <th scope="row">${i + 1}</th>
+        <td>${item.task}</td>
+        <td>${item.hr}hr</td>
+        <td>
+          <button onclick ="deleteItem(${i})" class="btn btn-danger">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+          <button onclick="updateTask(${i}, 'bad')" class="btn btn-success">
+            <i class="fa-solid fa-arrow-right-long"></i>
+          </button>
+        </td>
+      </tr>`
+        : "";
   });
+
   document.getElementById("task-list").innerHTML = str;
   totalTaskHours();
 };
@@ -54,88 +55,61 @@ const display = () => {
 const displayBadList = () => {
   let str = "";
 
-  badList.map((item, i) => {
-    str += ` 
-    <tr>
-    <th scope="row">${i + 1}</th>
-    <td>${item.task}</td>
-    <td>${item.hr}hr</td>
-    <td>
-    <button onclick = "deleteBadItem(${i})" class="btn btn-danger">
-    <i class="fa-solid fa-trash"></i>
-  </button>
-  <button onclick="markAsToDo(${i})" class="btn btn-success">
-    <i class="fa-solid fa-arrow-left"></i>
-  </button>
-    </td>
-  </tr>`;
+  taskList.map((item, i) => {
+    str +=
+      item.type === "bad"
+        ? `
+        <tr>
+        <th scope="row">${i + 1}</th>
+        <td>${item.task}</td>
+        <td>${item.hr}hr</td>
+        <td>
+          <button onclick ="deleteItem(${i})" class="btn btn-danger">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+          <button onclick="updateTask(${i}, 'entry')" class="btn btn-success">
+            <i class="fa-solid fa-arrow-left-long"></i>
+          </button>
+        </td>
+      </tr>`
+        : "";
   });
+
   document.getElementById("bad-list").innerHTML = str;
   totalTaskHours();
-  totalBadHours();
+  totalBadTaskHours();
 };
 
 const totalTaskHours = () => {
-  const total = taskList.reduce((acc, item) => {
-    return acc + item.hr;
-  }, 0);
-  console.log(total);
-  document.getElementById("totalHrs").innerHTML = total + totalBadHours();
+  document.getElementById("totalHrs").innerText = taskList.reduce(
+    (acc, item) => acc + item.hr,
+    0
+  );
 };
 
-const totalBadHours = () => {
-  const total = badList.reduce((subTtl, item) => {
-    return subTtl + item.hr;
-  }, 0);
-  document.getElementById("totalBadHrs").innerText = total;
-  return total;
+const totalBadTaskHours = () => {
+  document.getElementById("totalBadHrs").innerText = taskList.reduce(
+    (acc, item) => (item.type === "bad" ? acc + item.hr : acc + 0),
+    0
+  );
+};
+
+const updateTask = (i, type) => {
+  taskList = taskList.map((item, index) => {
+    if (i === index) {
+      item.type = type;
+    }
+    return item;
+  });
+  console.log(taskList);
+  display();
+  displayBadList();
 };
 
 const deleteItem = (i) => {
-  if (!window.confirm("Are you sure you want to delete this task?")) {
-    return;
+  if (window.confirm("Are you sure you want to delete this?")) {
+    taskList.splice(i, 1);
+    display();
+    displayBadList();
   }
-
-  const tempArg = taskList.filter((item, index) => {
-    return i !== index;
-  });
-  taskList = tempArg;
-
-  display();
-};
-
-const deleteBadItem = (i) => {
-  if (!window.confirm("Are you sure you want to delete this task?")) {
-    return;
-  }
-
-  const tempArg = badList.filter((item, index) => {
-    return i !== index;
-  });
-  badList = tempArg;
-  displayBadList();
-};
-
-const markAsNotToDo = (i) => {
-  const itm = taskList.splice(i, 1)[0];
-
-  badList.push(itm);
-
-  displayBadList();
-
-  display();
-
-  console.log(badList, taskList);
-};
-
-const markAsToDo = (i) => {
-  const itm = badList.splice(i, 1)[0];
-
-  taskList.push(itm);
-
-  display();
-
-  displayBadList();
-
-  console.log(taskList, badList);
 };
