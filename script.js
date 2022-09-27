@@ -15,7 +15,7 @@ const handleOnSubmit = (e) => {
   const totalTaskHrs = taskList.reduce((acc, item) => {
     return acc + item.hr;
   }, 0);
-  const total = totalTaskHrs + hr;
+  const total = totalTaskHrs + hr + totalBadHours();
   if (total > hrPerWek) {
     return alert("No more hours left to add new task");
   }
