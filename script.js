@@ -10,6 +10,7 @@ const handleOnSubmit = (e) => {
   const obj = {
     task,
     hr,
+    type: "entry",
   };
 
   const totalTaskHrs = taskList.reduce((acc, item) => {
